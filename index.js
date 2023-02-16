@@ -1,6 +1,9 @@
 //required packages
-const inquirer = require("inquirer")
+import inquirer from "inquirer"
+import cTable from "console.table"
+import fetch from "node-fetch"
 function allChoices() {
+   
     inquirer.prompt([
         {
             type: 'list',
@@ -14,12 +17,15 @@ function allChoices() {
         console.log(answers.choice);
         if (answers.choice == 'View all Departments') {
             //    TO DO: create back end to view all departments and connect to it
+            getDepartments().then(renderData);
         }
         else if (answers.choice == 'View all Roles') {
             //    TO DO: create back end to view all roles and connect to it
+            getRoles().then(renderData);
         }
         else if (answers.choice == 'View all Employees') {
-            //    TO DO: create back end to view all employees and connect to it
+            //    TO DO: create back end to view all employees
+            getEmployees().then(renderData);
         }
         else if (answers.choice == 'Add a Department') {
             //    TO DO: create back end and front end to add a department
@@ -35,5 +41,30 @@ function allChoices() {
         }
     }
     );
+}
+const getDepartments = () =>
+fetch('http:localhost:3001/department', {
+  method: 'GET',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+const getRoles = () =>
+fetch('http:localhost:3001/role', {
+  method: 'GET',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+const getEmployees = () =>
+fetch('http:localhost:3001/employee', {
+  method: 'GET',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+const renderData = async (sql) => {
+let jsonData = await sql.json();
+console.table(jsonData);
 }
 allChoices();

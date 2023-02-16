@@ -20,7 +20,7 @@ VALUES (001, "Junior Software Engineer", 100000, 001),
 
 INSERT INTO employee (id, first_name, last_name, role_id, manager_id)
 VALUES 	(001, "Terianne", "Phillips", 002, NULL),
-		(002, "Hadley", "Phillips", 001, 002),
+		(002, "Hadley", "Phillips", 002, 001),
         (003, "Cory", "Weckwerth", 003, NULL),
         (004, "Molly", "Catt", 004, 003),
         (005, "Tahli", "Catt", 008, NULL);
