@@ -1,6 +1,6 @@
 const express = require('express');
-// Import and require mysql2
 const mysql = require('mysql2');
+const path = require('path');
 
 const PORT = process.env.PORT || 3001;
 const app = express();
@@ -21,11 +21,19 @@ const db = mysql.createConnection(
   },
   console.log(`Connected to the employees_db database.`)
 );
-
-// Query database
-db.query('SELECT * FROM employee', function (err, results) {
-  console.log(results);
+app.get('/api/*', (req, res) => {
+  console.log(req.body);
+  db.query('SELECT * FROM employee', function (err, results) {
+    if (err) {
+      console.error(err);
+      res.status(500).json({ error: 'Internal Server Error' });
+    } else {
+      console.log(results);
+      res.json(results);
+    }
+  });
 });
+
 
 // Default response for any other request (Not Found)
 app.use((req, res) => {
