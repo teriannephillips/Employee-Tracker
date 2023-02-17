@@ -48,6 +48,19 @@ app.get('/employee', (req, res) => {
   });
 });
 
+app.post('/add_dept/name', (req, res) => {
+  const name = req.params.name;
+  const query = 'INSERT INTO department (name) VALUES (?)';
+  db.query(query, [name], (err, result) => {
+    if (err) {
+      console.error(err);
+      res.status(500).send('Error adding department');
+    } else {
+      res.send('Department added successfully');
+    }
+  });
+});
+
 
 // Default response for any other request (Not Found)
 app.use((req, res) => {

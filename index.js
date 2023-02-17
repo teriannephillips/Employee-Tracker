@@ -16,19 +16,24 @@ function allChoices() {
     ]).then(answers => {
         console.log(answers.choice);
         if (answers.choice == 'View all Departments') {
-            //    TO DO: create back end to view all departments and connect to it
             getDepartments().then(renderData);
         }
         else if (answers.choice == 'View all Roles') {
-            //    TO DO: create back end to view all roles and connect to it
             getRoles().then(renderData)
         }
         else if (answers.choice == 'View all Employees') {
-            //    TO DO: create back end to view all employees
             getEmployees().then(renderData);
         }
         else if (answers.choice == 'Add a Department') {
-            //    TO DO: create back end and front end to add a department
+            inquirer.prompt([
+                {
+                    type: 'input',
+                    name: 'name',
+                    message: 'What department name would you like to add?',
+                }
+            ]).then(answers => {     
+            addDepartment(answers.name);
+            });
         }
         else if (answers.choice == 'Add a Role') {
             //    TO DO: create back end to view all employees and connect to it
@@ -69,4 +74,23 @@ console.table(jsonData);
 console.log(`\n`);
 allChoices();
 }
+const addDepartment = (name) => {
+    fetch(`http://localhost:3001/add_dept/${name}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ name: name }),
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error('Failed to add department');
+        }
+        console.log('Department added successfully');
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  };
+  
 allChoices();
