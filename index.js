@@ -1,6 +1,6 @@
 //required packages
 import inquirer from "inquirer"
-import cTable from "console.table"
+//import console_table from "console.table"
 import fetch from "node-fetch"
 function allChoices() {
    
@@ -21,7 +21,7 @@ function allChoices() {
         }
         else if (answers.choice == 'View all Roles') {
             //    TO DO: create back end to view all roles and connect to it
-            getRoles().then(renderData);
+            getRoles().then(renderData)
         }
         else if (answers.choice == 'View all Employees') {
             //    TO DO: create back end to view all employees
@@ -66,5 +66,7 @@ fetch('http:localhost:3001/employee', {
 const renderData = async (sql) => {
 let jsonData = await sql.json();
 console.table(jsonData);
+console.log(`\n`);
+allChoices();
 }
 allChoices();
