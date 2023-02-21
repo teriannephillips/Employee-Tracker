@@ -49,7 +49,7 @@ app.get('/employee', (req, res) => {
 
 app.post('/add_dept/:name', (req, res) => {
   const name = req.params.name;
-  db.query('SELECT COUNT(*) AS count FROM department WHERE name = ?', [name], (err, results) => {
+  db.query('SELECT COUNT(*) AS count FROM department WHERE department = ?', [name], (err, results) => {
     if (err) {
       console.error(err);
       res.status(500).send('Error checking department');
@@ -59,7 +59,7 @@ app.post('/add_dept/:name', (req, res) => {
         console.log('Department already exists');
         res.send('Department already exists');
       } else {
-        const query = 'INSERT INTO department (name) VALUES (?)';
+        const query = 'INSERT INTO department (department) VALUES (?)';
         db.query(query, [name], (err, result) => {
           if (err) {
             console.error(err);

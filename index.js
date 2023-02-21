@@ -36,8 +36,10 @@ function allChoices() {
             });
         }
         else if (answers.choice == 'Add a Role') {
-            //    TO DO: create back end to view all employees and connect to it
-            roleQuestions();
+        
+            getDepartments()
+            .then((sql) => renderDeptChoices(sql))
+            .then(({ titleArray, jsonData}) => roleQuestions(titleArray, jsonData));
         }
         else if (answers.choice == 'Add an Employee') {
             //    TO DO: create back end and front end to add an employee
@@ -51,7 +53,7 @@ function allChoices() {
     }
     );
 }
-function roleQuestions() {
+function roleQuestions(titleArray, jsonData) {
     inquirer.prompt([
         {
             type: 'input',
@@ -64,21 +66,34 @@ function roleQuestions() {
             message: 'What is the salary of this position?',
         },
         {
-            type: 'input',
-            name: 'deptId',
-            message: 'What is the department id of this position?',
-        },
+            type: 'list',
+            name: 'department',
+            message: 'Which department does this role belong to?',
+            choices: titleArray,
+        }
     ]).then(answers => {
-        addRole(answers.title, answers.salary, answers.deptId);
+        let title = answers.title;
+        let salary = answers.salary;
+        let deptId;
+        for (let i = 0; i < jsonData.length; i++) {
+            if (jsonData[i].department == answers.department) {
+                deptId = jsonData[i].id;
+                console.log(deptId)
+                break;
+            }
+        }
+        addRole(title, salary, deptId);
     });
 }
+
 const getDepartments = () =>
     fetch('http:localhost:3001/department', {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',
         },
-    });
+
+    })
 const getRoles = () =>
     fetch('http:localhost:3001/role', {
         method: 'GET',
@@ -99,62 +114,53 @@ const renderData = async (sql) => {
     console.log(`\n`);
     allChoices();
 }
-const renderChoices = async (sql) => {
+const renderDeptChoices = async (sql) => {
     let jsonData = await sql.json();
     let titleArray = [];
+    let deptId;
     for (let i = 0; i < jsonData.length; i++) {
         titleArray.push(jsonData[i].department);
+        
     }
-    inquirer.prompt([
-        {
-            type: 'list',
-            name: 'choice',
-            message: 'Which department does this role belong to?',
-            choices: titleArray
-        }
-    ]).then(answers => {
-        console.log(answers.choice);
-    });
+    return { titleArray, jsonData };
+}
+const addDepartment = (name) => {
+    fetch(`http://localhost:3001/add_dept/${name}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name: name }),
+    })
+        .then((response) => {
+            if (!response.ok) {
+                throw new Error('Failed to add department');
+            }
+            console.log('Department added successfully');
+            allChoices();
+        })
+        .catch((error) => {
+            console.error(error);
+        });
 };
-    const addDepartment = (name) => {
-        fetch(`http://localhost:3001/add_dept/${name}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ name: name }),
+const addRole = (title, salary, deptId) => {
+    fetch(`http://localhost:3001/add_role/${title}/${salary}/${deptId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ title: title, salary: salary, department_id: deptId }),
+    })
+        .then((response) => {
+            if (!response.ok) {
+                throw new Error('Failed to add role');
+            }
+            console.log('Role added successfully');
+            allChoices();
         })
-            .then((response) => {
-                if (!response.ok) {
-                    throw new Error('Failed to add department');
-                }
-                console.log('Department added successfully');
-                allChoices();
-            })
-            .catch((error) => {
-                console.error(error);
-            });
-    };
-    const addRole = (title, salary, deptId) => {
-        fetch(`http://localhost:3001/add_role/${title}/${salary}/${deptId}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ title: title, salary: salary, department_id: deptId }),
-        })
-            .then((response) => {
-                if (!response.ok) {
-                    throw new Error('Failed to add role');
-                }
-                console.log(response.body);
-                console.log('Role added successfully');
-                allChoices();
-            })
-            .catch((error) => {
-                console.error(error);
-            });
-    };
+        .catch((error) => {
+            console.error(error);
+        });
+};
 
-    //allChoices();
-    getDepartments().then(renderChoices);
+allChoices();
