@@ -40,15 +40,13 @@ function allChoices() {
                 .then(({ titleArray, jsonData }) => roleQuestions(titleArray, jsonData));
         }
         else if (answers.choice == 'Add an Employee') {
-
             getRolesandEmployees()
                 .then(({ roleArray, managerArray, data }) => employeeQuestions(roleArray, managerArray, data));
         }
         else if (answers.choice == 'Update an Employee Role') {
             //    TO DO: create back end and front end to update an employee 
-            getEmployees()
-                .then((sql) => renderManagerChoices(sql))
-                .then(({ managerArray, jsonData }) => updateRoleQuestions(managerArray, jsonData));
+            getRolesandEmployees()
+                .then(({ roleArray, managerArray, data }) => updateRoleQuestions(roleArray, managerArray, data));
         }
         else if (answers.choice == 'Quit') {
             console.log("******Thank you for using Employee Tracker!!!******");
@@ -118,6 +116,41 @@ function employeeQuestions(titleArray, managerArray, data) {
         let lName = answers.lName;
         let roleId = 0;
         let managerId =0;
+        for (let i = 0; i < data.result.length; i++) {
+            console.log(data.result[i].title);
+            if (data.result[i].title == answers.role) {
+               roleId = i + 1;
+            }
+        }
+        let result = answers.manager.split(" ");
+        let managerFName = result[1]
+        let managerLName =  result[2]
+        for (let i = 0; i < data.managerResult.length; i++) {
+            if (data.managerResult[i].first_name == managerFName && data.managerResult[i].last_name == managerLName) {
+               managerId = data.managerResult[i].id;
+            }
+        }
+addEmployee(fName, lName, roleId, managerId)
+    });
+}
+function updateRoleQuestions(titleArray, managerArray, data) {
+
+    inquirer.prompt([
+        {
+            type: 'list',
+            name: 'manager',
+            message: 'Which employee would you like to update?',
+            choices: managerArray,
+        },
+        {
+            type: 'list',
+            name: 'role',
+            message: 'What is the employees new role?',
+            choices: titleArray,
+        },
+        
+    ]).then(answers => {
+        let roleId = 0;
 console.log(answers.role)
         for (let i = 0; i < data.result.length; i++) {
             console.log(data.result[i].title);
@@ -128,16 +161,12 @@ console.log(answers.role)
         console.log(roleId)
         console.log(answers.manager)
         let result = answers.manager.split(" ");
-        let managerFName = result[1]
-        let managerLName =  result[2]
-        for (let i = 0; i < data.managerResult.length; i++) {
-            if (data.managerResult[i].first_name == managerFName && data.managerResult[i].last_name) {
-               managerId = data.managerResult[i].id;
-            }
-        }
-console.log(managerId)
-addEmployee(fName, lName, roleId, managerId)
-    });
+        let fName = result[1]
+        let lName =  result[2]
+        updateEmployee(fName, lName, roleId)
+        });
+
+
 }
 const getDepartments = () =>
     fetch('http:localhost:3001/department', {
@@ -162,15 +191,7 @@ const getEmployees = () =>
         },
     });
 const getRolesandEmployees = () =>
-    // fetch('http:localhost:3001/rolesandemployees', {
-    //     method: 'GET',
-    //     headers: {
-    //         'Content-Type': 'application/json',
-    //     },
-
-    // });
-
-    fetch('http:localhost:3001/rolesandemployees')
+ fetch('http:localhost:3001/rolesandemployees')
   .then(response => response.json())
   .then(data => processData(data))
   .catch(error => console.error(error));
@@ -190,50 +211,20 @@ const renderDeptChoices = async (sql) => {
     }
     return { titleArray, jsonData };
 }
-const renderRoleChoices = async (sql) => {
-    let jsonData = await sql.json();
-    let titleArray = [];
-    for (let i = 0; i < jsonData.length; i++) {
-        titleArray.push(jsonData[i].title);
 
-    }
-    return { titleArray, jsonData };
-}
 function processData(data) {
     let roleArray = [];
     for (let i = 0; i < data.result.length; i++) {
         roleArray.push(data.result[i].title);
     }
          let managerArray = []; 
-         let managerArray2 = [];
  for (let i = 0; i < data.managerResult.length; i++) { 
    let managerName = ` ${data.managerResult[i].first_name} ${data.managerResult[i].last_name}`;
-   managerArray2.push(managerName, data.managerResult[i].id );
    managerArray.push(managerName);
   }
-  console.log("line 204")
-  console.log(roleArray)
-    return { roleArray, managerArray, managerArray2, data };
+    return { roleArray, managerArray, data };
  }
-//     renderRoleChoices(sql)
-//     renderManagerChoices(sql2)
-//     return {titleArray, managerArray}
-
-//     let roleData = await sql.json();
-//     let employeeData = await sql2.json();
-//     let roleArray = [];
-//     let managerArray = []; // Declare managerArray outside of the for loop to be able to add elements to it
-//     for (let i = 0; i < roleData.length; i++) { // Use roleData instead of jsonData
-//       roleArray.push(roleData[i].title);
-//     }
-//     for (let i = 0; i < employeeData.length; i++) { // Use employeeData instead of jsonDataMgr
-//       let managerName = ` ${employeeData[i].first_name} ${employeeData[i].last_name}`;
-//       managerArray.push(managerName);
-//     }
-//     return { roleArray, managerArray }; // Move the return statement outside of the for loops
-//   }
   
-
     const renderManagerChoices = async (sql) => {
         let jsonDataMgr = await sql.json();
         let managerArray = [];
@@ -294,6 +285,25 @@ function processData(data) {
                     throw new Error('Failed to add employee');
                 }
                 console.log('Employee added successfully');
+                allChoices();
+            })
+            .catch((error) => {
+                console.error(error);
+            });
+    };
+    const updateEmployee = (fName, lName, roleId) => {
+        fetch(`http://localhost:3001/update_employee/${roleId}/${fName}/${lName}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({role_id: roleId }),
+        })
+            .then((response) => {
+                if (!response.ok) {
+                    throw new Error('Failed to update employee role');
+                }
+                console.log('Employee role updated successfully');
                 allChoices();
             })
             .catch((error) => {

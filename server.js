@@ -120,6 +120,20 @@ app.post('/add_dept/:name', (req, res) => {
       }
     });
   });
+  app.put('/update_employee/:role_id/:fName/:lName', (req, res) => {
+    const fName = req.params.fName;
+    const lName = req.params.lName;
+    const role_id = req.params.role_id;
+    const query = 'UPDATE employee SET role_id = ? WHERE first_name = ? && last_name = ?';
+    db.query(query, [role_id, fName, lName], (err, result) => {
+      if (err) {
+        console.error(err);
+        res.status(500).send('Error updating employee');
+      } else {
+        res.send('Employee role updated successfully');
+      }
+    });
+  });
   // Default response for any other request (Not Found)
   app.use((req, res) => {
     res.status(404).end();
